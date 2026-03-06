@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login - Waveit</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body class="auth-page">
+  <div class="page-bg"></div>
+
+  <main class="auth-card-wrap">
+    <section class="auth-card">
+      <p class="eyebrow">Music Smartlink</p>
+      <h1>Welcome back</h1>
+      <p class="auth-subtext">Sign in to manage your smartlinks and analytics.</p>
+
+      <form id="loginForm" class="auth-form" novalidate>
+        <label class="field">
+          <span>Email</span>
+          <input type="email" id="email" name="email" required />
+        </label>
+
+        <label class="field">
+          <span>Password</span>
+          <input type="password" id="password" name="password" required />
+        </label>
+
+        <button type="submit" class="btn-primary">Login</button>
+        <p id="loginMessage" class="form-message"></p>
+      </form>
+
+      <p class="auth-alt">
+        Don't have an account? <a href="register.html">Register</a>
+      </p>
+    </section>
+  </main>
+
+  <script>
+    (function () {
+      const API_BASE_URL = localStorage.getItem('apiBaseUrl') || 'http://localhost:5000';
+      const form = document.getElementById('loginForm');
+      const messageEl = document.getElementById('loginMessage');
+
+      const setMessage = (text, variant) => {
+        messageEl.textContent = text;
+        messageEl.className = `form-message ${variant}`;
+      };
+
+      form.addEventListener('submit', async (event) => {
+        event.preventDefault();
+
+        const email = document.getElementById('email').value.trim().toLowerCase();
+        const password = document.getElementById('password').value;
+
+        if (!email || !password) {
+          setMessage('Email and password are required.', 'error');
+          return;
+        }
+
+        try {
+          setMessage('Logging in...', '');
+          const response = await fetch(`${API_BASE_URL}/api/login`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password })
+          });
+
+          const payload = await response.json();
+          if (!response.ok) {
+            throw new Error(payload.message || 'Login failed.');
+          }
+
+          if (payload.token) {
+            localStorage.setItem('token', payload.token);
+          }
+
+          if (payload.user) {
+            localStorage.setItem('user', JSON.stringify(payload.user));
+          }
+
+          setMessage('Login successful. Redirecting...', 'success');
+          setTimeout(() => {
+            window.location.href = 'dashboard.html';
+          }, 500);
+        } catch (error) {
+          setMessage(error.message || 'Unable to login. Try again.', 'error');
+        }
+      });
+    })();
+  </script>
+</body>
+</html>

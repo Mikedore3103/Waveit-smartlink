@@ -1,0 +1,72 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Analytics Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="page-bg"></div>
+  <div id="authNavMount"></div>
+
+  <main class="dashboard-shell">
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">Music Smartlink</p>
+        <h1>Analytics Dashboard</h1>
+      </div>
+    </header>
+
+    <section class="analytics-toolbar">
+      <label for="analyticsLinkSelect">Select Smart Link</label>
+      <select id="analyticsLinkSelect"></select>
+    </section>
+
+    <section class="metrics-grid metrics-grid-3">
+      <article class="metric-card">
+        <p class="metric-label">Total Clicks</p>
+        <h2 id="analyticsTotalClicks">0</h2>
+      </article>
+      <article class="metric-card">
+        <p class="metric-label">Top Country</p>
+        <h2 id="analyticsTopCountry">-</h2>
+      </article>
+      <article class="metric-card">
+        <p class="metric-label">Top Platform</p>
+        <h2 id="analyticsTopPlatform">-</h2>
+      </article>
+    </section>
+
+    <section class="analytics-grid">
+      <article class="chart-card">
+        <h3>Daily Click Trend</h3>
+        <canvas id="dailyClicksChart"></canvas>
+      </article>
+
+      <article class="chart-card">
+        <h3>Clicks Per Platform</h3>
+        <canvas id="platformClicksChart"></canvas>
+      </article>
+
+      <article class="chart-card">
+        <h3>Top Listener Countries</h3>
+        <canvas id="countriesChart"></canvas>
+      </article>
+
+      <article class="chart-card">
+        <h3>Device Breakdown</h3>
+        <ul id="deviceBreakdownList" class="device-list"></ul>
+      </article>
+    </section>
+
+    <p id="analyticsStatus" class="form-message">Loading analytics...</p>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

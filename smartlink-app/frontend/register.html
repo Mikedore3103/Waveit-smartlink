@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Register - Waveit</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body class="auth-page">
+  <div class="page-bg"></div>
+
+  <main class="auth-card-wrap">
+    <section class="auth-card">
+      <p class="eyebrow">Music Smartlink</p>
+      <h1>Create your account</h1>
+      <p class="auth-subtext">Start sharing one smartlink for all your music platforms.</p>
+
+      <form id="registerForm" class="auth-form" novalidate>
+        <label class="field">
+          <span>Artist Name</span>
+          <input type="text" id="artistName" name="artistName" required />
+        </label>
+
+        <label class="field">
+          <span>Email</span>
+          <input type="email" id="email" name="email" required />
+        </label>
+
+        <label class="field">
+          <span>Password</span>
+          <input type="password" id="password" name="password" required minlength="6" />
+        </label>
+
+        <label class="field">
+          <span>Confirm Password</span>
+          <input type="password" id="confirmPassword" name="confirmPassword" required minlength="6" />
+        </label>
+
+        <button type="submit" class="btn-primary">Create Account</button>
+        <p id="registerMessage" class="form-message"></p>
+      </form>
+
+      <p class="auth-alt">
+        Already have an account? <a href="login.html">Login</a>
+      </p>
+    </section>
+  </main>
+
+  <script>
+    (function () {
+      const API_BASE_URL = localStorage.getItem('apiBaseUrl') || 'http://localhost:5000';
+      const form = document.getElementById('registerForm');
+      const messageEl = document.getElementById('registerMessage');
+
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+      const setMessage = (text, variant) => {
+        messageEl.textContent = text;
+        messageEl.className = `form-message ${variant}`;
+      };
+
+      form.addEventListener('submit', async (event) => {
+        event.preventDefault();
+
+        const artistName = document.getElementById('artistName').value.trim();
+        const email = document.getElementById('email').value.trim().toLowerCase();
+        const password = document.getElementById('password').value;
+        const confirmPassword = document.getElementById('confirmPassword').value;
+
+        if (!artistName || !email || !password || !confirmPassword) {
+          setMessage('All fields are required.', 'error');
+          return;
+        }
+
+        if (!emailRegex.test(email)) {
+          setMessage('Please enter a valid email address.', 'error');
+          return;
+        }
+
+        if (password.length < 6) {
+          setMessage('Password must be at least 6 characters.', 'error');
+          return;
+        }
+
+        if (password !== confirmPassword) {
+          setMessage('Passwords do not match.', 'error');
+          return;
+        }
+
+        try {
+          setMessage('Creating your account...', '');
+          const response = await fetch(`${API_BASE_URL}/api/register`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              artist_name: artistName,
+              email,
+              password
+            })
+          });
+
+          const payload = await response.json();
+          if (!response.ok) {
+            throw new Error(payload.message || 'Registration failed.');
+          }
+
+          setMessage('Registration successful. Redirecting to login...', 'success');
+          setTimeout(() => {
+            window.location.href = 'login.html';
+          }, 800);
+        } catch (error) {
+          setMessage(error.message || 'Unable to register. Try again.', 'error');
+        }
+      });
+    })();
+  </script>
+</body>
+</html>
