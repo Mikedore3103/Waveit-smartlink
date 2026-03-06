@@ -1,0 +1,67 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Waveit Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="page-bg"></div>
+  <div id="authNavMount"></div>
+
+  <main class="dashboard-shell">
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">Music Smartlink</p>
+        <h1 id="artistName">Loading artist...</h1>
+      </div>
+    </header>
+
+    <section class="metrics-grid">
+      <article class="metric-card">
+        <p class="metric-label">Total Links Created</p>
+        <h2 id="totalLinks">0</h2>
+      </article>
+      <article class="metric-card">
+        <p class="metric-label">Total Clicks</p>
+        <h2 id="totalClicks">0</h2>
+      </article>
+      <article class="metric-card">
+        <p class="metric-label">Total Platforms</p>
+        <h2 id="totalPlatforms">0</h2>
+      </article>
+    </section>
+
+    <section class="table-panel">
+      <div class="panel-head">
+        <h3>Your Links</h3>
+        <p id="tableStatus">Fetching links...</p>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Link Title</th>
+              <th>Created Date</th>
+              <th>Total Clicks</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="linksTableBody">
+            <tr>
+              <td colspan="4" class="empty-row">Loading...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>

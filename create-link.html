@@ -1,0 +1,68 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Create Smartlink</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="page-bg"></div>
+  <div id="authNavMount"></div>
+
+  <main class="dashboard-shell">
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">Music Smartlink</p>
+        <h1>Create Smartlink</h1>
+      </div>
+    </header>
+
+    <section class="form-panel">
+      <form id="createLinkForm" class="smartlink-form">
+        <div class="form-grid">
+          <label class="field">
+            <span>Song Title</span>
+            <input type="text" id="songTitle" name="songTitle" placeholder="e.g. Summer Lights" required />
+          </label>
+
+          <label class="field">
+            <span>Cover Image URL</span>
+            <input type="url" id="coverImage" name="coverImage" placeholder="https://example.com/cover.jpg" />
+          </label>
+        </div>
+
+        <section class="platform-section">
+          <div class="platform-head">
+            <h3>Streaming Platforms</h3>
+            <button type="button" id="addPlatformBtn" class="btn-inline">Add Platform</button>
+          </div>
+          <div id="platformRows" class="platform-rows"></div>
+        </section>
+
+        <div class="form-actions">
+          <button type="submit" class="btn-primary">Create Smartlink</button>
+          <p id="createLinkMessage" class="form-message"></p>
+        </div>
+      </form>
+    </section>
+
+    <section class="form-panel">
+      <div class="panel-head">
+        <h3>Smartlink Preview</h3>
+      </div>
+      <div class="public-link-shell" id="createPreviewShell">
+        <img id="previewCover" class="public-cover" alt="Preview cover artwork" style="display:none;" />
+        <h3 id="previewSongTitle">Your Song Title</h3>
+        <p class="public-artist">Select platforms to preview your smartlink layout</p>
+        <section id="previewPlatforms" class="public-platforms"></section>
+      </div>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
