@@ -1,4 +1,4 @@
-const API_BASE_URL = localStorage.getItem('apiBaseUrl') || 'http://localhost:5000';
+const API_BASE_URL = localStorage.getItem('apiBaseUrl') || 'https://waveit-smartlink-api.onrender.com';
 
 const getAuthHeaders = () => {
   const token = localStorage.getItem('token');

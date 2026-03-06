@@ -1,4 +1,4 @@
-const API_BASE_URL = localStorage.getItem('apiBaseUrl') || 'http://localhost:5000';
+const API_BASE_URL = localStorage.getItem('apiBaseUrl') || 'https://waveit-smartlink-api.onrender.com';
 const authToken = localStorage.getItem('token') || '';
 let dashboardLinks = [];
 const protectedPages = new Set(['dashboard.html', 'create-link.html', 'analytics.html']);
@@ -761,3 +761,4 @@ const init = async () => {
 };
 
 init();
+

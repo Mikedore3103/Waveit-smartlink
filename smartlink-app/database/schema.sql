@@ -1,4 +1,4 @@
-﻿-- PostgreSQL schema for Music Smartlink app
+-- PostgreSQL schema for Music Smartlink app
 -- Enables gen_random_uuid() for UUID primary keys.
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
 

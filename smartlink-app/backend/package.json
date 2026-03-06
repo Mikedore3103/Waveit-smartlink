@@ -5,7 +5,12 @@
   "main": "server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node server.js"
+    "start": "node server.js",
+    "dev": "node server.js",
+    "build": "echo 'Build complete - Node.js backend ready for deployment'",
+    "postinstall": "echo 'Dependencies installed successfully'",
+    "setup-db": "node setup-database.js",
+    "db:setup": "node setup-database.js"
   },
   "keywords": [],
   "author": "",
