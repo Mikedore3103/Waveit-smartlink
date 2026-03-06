@@ -102,7 +102,13 @@
             })
           });
 
-          const payload = await response.json();
+          const raw = await response.text();
+          let payload = {};
+          try {
+            payload = raw ? JSON.parse(raw) : {};
+          } catch (_) {
+            payload = { message: raw || 'Registration failed.' };
+          }
           if (!response.ok) {
             throw new Error(payload.message || 'Registration failed.');
           }

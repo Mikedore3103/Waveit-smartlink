@@ -30,8 +30,9 @@ const registerUser = async (req, res) => {
     return res.status(400).json({ message: 'Password must be at least 8 characters' });
   }
 
-  const client = await pool.connect();
+  let client;
   try {
+    client = await pool.connect();
     await client.query('BEGIN');
 
     const existingUser = await client.query('SELECT id FROM users WHERE email = $1', [email]);
@@ -67,10 +68,18 @@ const registerUser = async (req, res) => {
       user: insertResult.rows[0],
     });
   } catch (error) {
-    await client.query('ROLLBACK');
+    if (client) {
+      try {
+        await client.query('ROLLBACK');
+      } catch (_) {
+        // Ignore rollback failures and return the original error
+      }
+    }
     return res.status(500).json({ message: 'Failed to register user', error: error.message });
   } finally {
-    client.release();
+    if (client) {
+      client.release();
+    }
   }
 };
 

@@ -53,6 +53,13 @@ app.use(/^\/api\/.*/, (req, res) => {
   res.status(404).json({ message: `API route not found: ${req.method} ${req.originalUrl}` });
 });
 
+app.use((err, req, res, next) => {
+  if (req.path && req.path.startsWith('/api/')) {
+    return res.status(500).json({ message: 'Internal server error', error: err.message });
+  }
+  return next(err);
+});
+
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });

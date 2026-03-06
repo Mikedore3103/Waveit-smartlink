@@ -69,7 +69,13 @@
             body: JSON.stringify({ email, password })
           });
 
-          const payload = await response.json();
+          const raw = await response.text();
+          let payload = {};
+          try {
+            payload = raw ? JSON.parse(raw) : {};
+          } catch (_) {
+            payload = { message: raw || 'Login failed.' };
+          }
           if (!response.ok) {
             throw new Error(payload.message || 'Login failed.');
           }
