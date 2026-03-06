@@ -41,7 +41,7 @@
 
   <script>
     (function () {
-      const API_BASE_URL = localStorage.getItem('apiBaseUrl') || 'http://localhost:5000';
+      const API_BASE_URL = localStorage.getItem('apiBaseUrl') || 'https://waveit-smartlink-api.onrender.com';
       const form = document.getElementById('loginForm');
       const messageEl = document.getElementById('loginMessage');
 
@@ -87,6 +87,10 @@
             window.location.href = 'dashboard.html';
           }, 500);
         } catch (error) {
+          if (error instanceof TypeError) {
+            setMessage('Unable to reach the API. Check backend URL and that the backend is deployed.', 'error');
+            return;
+          }
           setMessage(error.message || 'Unable to login. Try again.', 'error');
         }
       });
