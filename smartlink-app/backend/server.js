@@ -49,7 +49,7 @@ app.get('/api/health', (req, res) => {
 
 // Catch-all: return JSON 404 for unmatched /api/* routes
 // (prevents Express from returning the HTML frontend for missing API endpoints)
-app.use('/api/*', (req, res) => {
+app.use(/^\/api\/.*/, (req, res) => {
   res.status(404).json({ message: `API route not found: ${req.method} ${req.originalUrl}` });
 });
 
