@@ -126,6 +126,27 @@ const platformCtaLabel = (platformName) => {
   return `Listen on ${platformName}`;
 };
 
+const buildCoverPlaceholder = (title = 'Untitled', artist = 'Waveit') => {
+  const safeTitle = String(title || 'Untitled').slice(0, 28);
+  const safeArtist = String(artist || 'Waveit').slice(0, 32);
+  const svg = `
+    <svg xmlns="http://www.w3.org/2000/svg" width="600" height="600" viewBox="0 0 600 600">
+      <defs>
+        <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="#7c3aed"/>
+          <stop offset="100%" stop-color="#06b6d4"/>
+        </linearGradient>
+      </defs>
+      <rect width="600" height="600" fill="url(#g)"/>
+      <circle cx="120" cy="120" r="120" fill="rgba(255,255,255,0.16)"/>
+      <circle cx="520" cy="520" r="170" fill="rgba(0,0,0,0.15)"/>
+      <text x="50%" y="50%" text-anchor="middle" fill="#ffffff" font-size="52" font-family="Arial, sans-serif" font-weight="700">${safeTitle}</text>
+      <text x="50%" y="57%" text-anchor="middle" fill="rgba(255,255,255,0.9)" font-size="24" font-family="Arial, sans-serif">${safeArtist}</text>
+    </svg>
+  `;
+  return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
+};
+
 const buildPlatformButtonContent = (platformName, label) => {
   const logoUrl = platformLogoUrlMap[platformName];
   const logo = logoUrl
@@ -657,12 +678,8 @@ const initPublicLinkPage = async () => {
     artistEl.textContent = link.artist_name || 'Unknown artist';
     stateEl.textContent = '';
 
-    if (link.cover_image) {
-      coverEl.src = link.cover_image;
-      coverEl.style.display = 'block';
-    } else {
-      coverEl.style.display = 'none';
-    }
+    coverEl.src = link.cover_image || buildCoverPlaceholder(link.title, link.artist_name);
+    coverEl.style.display = 'block';
 
     platformsEl.innerHTML = '';
     if (!Array.isArray(platforms) || platforms.length === 0) {
