@@ -449,8 +449,7 @@ const initCreateLinkPage = () => {
     if (!previewTitleEl || !previewPlatformsEl) return;
 
     const title = document.getElementById('songTitle')?.value?.trim() || 'Your Song Title';
-    const coverImage = document.getElementById('coverImage')?.value?.trim();
-    const selectedCover = coverImage || coverImageFromFile;
+    const selectedCover = coverImageFromFile;
     const platforms = serializePlatforms();
 
     previewTitleEl.textContent = title;
@@ -523,7 +522,6 @@ const initCreateLinkPage = () => {
   });
   addPlatformRow('Spotify', '', renderCreatePreview);
   document.getElementById('songTitle')?.addEventListener('input', renderCreatePreview);
-  document.getElementById('coverImage')?.addEventListener('input', renderCreatePreview);
   coverImageFileInput?.addEventListener('change', () => {
     const file = coverImageFileInput.files && coverImageFileInput.files[0];
     if (!file) {
@@ -565,8 +563,7 @@ const initCreateLinkPage = () => {
   form.addEventListener('submit', async (event) => {
     event.preventDefault();
     const title = document.getElementById('songTitle')?.value?.trim();
-    const coverImage = document.getElementById('coverImage')?.value?.trim();
-    const selectedCover = coverImage || coverImageFromFile;
+    const selectedCover = coverImageFromFile;
     const platforms = serializePlatforms();
     if (!title || platforms.length === 0) {
       messageEl.textContent = 'Song title and at least one platform are required.';
