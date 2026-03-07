@@ -372,7 +372,8 @@ const initDashboardActions = () => {
 
     try {
       if (action === 'edit') {
-        await editDashboardLink(linkId);
+        window.location.href = `create-link.html?edit_id=${encodeURIComponent(linkId)}`;
+        return;
       }
       if (action === 'delete') {
         const ok = window.confirm('Delete this smartlink? This cannot be undone.');
@@ -473,6 +474,8 @@ const initCreateLinkPage = () => {
   const addPlatformBtn = document.getElementById('addPlatformBtn');
   const autoFillPlatformsBtn = document.getElementById('autoFillPlatformsBtn');
   const messageEl = document.getElementById('createLinkMessage');
+  const pageTitleEl = document.querySelector('.topbar h1');
+  const submitBtn = form?.querySelector('button[type="submit"]');
   const previewTitleEl = document.getElementById('previewSongTitle');
   const previewCoverEl = document.getElementById('previewCover');
   const previewPlatformsEl = document.getElementById('previewPlatforms');
@@ -481,6 +484,17 @@ const initCreateLinkPage = () => {
   let coverImageFromFile = '';
   let coverImageValidationError = '';
   const MAX_COVER_FILE_BYTES = 2 * 1024 * 1024;
+  const editId = new URLSearchParams(window.location.search).get('edit_id');
+
+  const loadEditableLink = async (linkId) => {
+    const response = await fetch(`${API_BASE_URL}/api/links/user`, { headers: authHeaders() });
+    const payload = await response.json();
+    if (!response.ok) throw new Error(payload.message || 'Failed to load links');
+    const links = Array.isArray(payload) ? payload : payload.links || [];
+    const link = links.find((item) => item.id === linkId);
+    if (!link) throw new Error('Link not found');
+    return link;
+  };
 
   const renderCreatePreview = () => {
     if (!previewTitleEl || !previewPlatformsEl) return;
@@ -557,7 +571,36 @@ const initCreateLinkPage = () => {
       : 'All target platform rows already have links.';
     messageEl.className = 'form-message success';
   });
-  addPlatformRow('Spotify', '', renderCreatePreview);
+  const initializeCreateForm = async () => {
+    if (editId) {
+      try {
+        const link = await loadEditableLink(editId);
+        if (pageTitleEl) pageTitleEl.textContent = 'Edit Smartlink';
+        if (submitBtn) submitBtn.textContent = 'Save Changes';
+        const titleInput = document.getElementById('songTitle');
+        if (titleInput) titleInput.value = link.title || '';
+        coverImageFromFile = link.cover_image || '';
+        const rowsContainer = document.getElementById('platformRows');
+        if (rowsContainer) rowsContainer.innerHTML = '';
+        const existingPlatforms = Array.isArray(link.platforms) ? link.platforms : [];
+        if (existingPlatforms.length > 0) {
+          existingPlatforms.forEach((p) => {
+            addPlatformRow(p.platform_name || '', p.platform_url || '', renderCreatePreview);
+          });
+        } else {
+          addPlatformRow('Spotify', '', renderCreatePreview);
+        }
+      } catch (error) {
+        messageEl.textContent = error.message || 'Failed to load link for editing.';
+        messageEl.className = 'form-message error';
+      }
+    } else {
+      addPlatformRow('Spotify', '', renderCreatePreview);
+    }
+    renderCreatePreview();
+  };
+
+  initializeCreateForm();
   document.getElementById('songTitle')?.addEventListener('input', renderCreatePreview);
   coverImageFileInput?.addEventListener('change', () => {
     const file = coverImageFileInput.files && coverImageFileInput.files[0];
@@ -600,8 +643,6 @@ const initCreateLinkPage = () => {
     };
     reader.readAsDataURL(file);
   });
-  renderCreatePreview();
-
   form.addEventListener('submit', async (event) => {
     event.preventDefault();
     const title = document.getElementById('songTitle')?.value?.trim();
@@ -625,8 +666,12 @@ const initCreateLinkPage = () => {
     }
 
     try {
-      const response = await fetch(`${API_BASE_URL}/api/links`, {
-        method: 'POST',
+      const isEditMode = Boolean(editId);
+      const endpoint = isEditMode
+        ? `${API_BASE_URL}/api/links/${encodeURIComponent(editId)}`
+        : `${API_BASE_URL}/api/links`;
+      const response = await fetch(endpoint, {
+        method: isEditMode ? 'PUT' : 'POST',
         headers: authHeaders(),
         body: JSON.stringify({
           title,
@@ -635,8 +680,8 @@ const initCreateLinkPage = () => {
         }),
       });
       const payload = await response.json();
-      if (!response.ok) throw new Error(payload.message || 'Failed to create smartlink');
-      messageEl.textContent = 'Smartlink created successfully.';
+      if (!response.ok) throw new Error(payload.message || `Failed to ${isEditMode ? 'update' : 'create'} smartlink`);
+      messageEl.textContent = isEditMode ? 'Smartlink updated successfully.' : 'Smartlink created successfully.';
       messageEl.className = 'form-message success';
       setTimeout(() => {
         window.location.href = 'dashboard.html';
