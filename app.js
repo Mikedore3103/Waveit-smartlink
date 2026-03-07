@@ -255,6 +255,7 @@ const renderLinks = (links) => {
 
     const actionTd = document.createElement('td');
     actionTd.innerHTML = `
+      <button type="button" class="btn-inline action-btn" data-action="edit" data-link-id="${link.id}">Edit</button>
       <a class="btn-inline action-btn" href="${smartUrl}" target="_blank" rel="noopener noreferrer">View</a>
       <a class="btn-inline action-btn" href="analytics.html?link_id=${encodeURIComponent(link.id)}">Analytics</a>
       <button type="button" class="btn-remove action-btn" data-action="delete" data-link-id="${link.id}">Delete</button>
@@ -303,8 +304,6 @@ const editDashboardLink = async (linkId) => {
 
   const nextTitle = window.prompt('Edit song title:', link.title || '');
   if (nextTitle === null) return;
-  const nextCover = window.prompt('Edit cover image URL:', link.cover_image || '');
-  if (nextCover === null) return;
   const nextShareTitle = window.prompt('Share title:', link.share_title || link.title || '');
   if (nextShareTitle === null) return;
   const nextShareDescription = window.prompt('Share description:', link.share_description || '');
@@ -330,7 +329,7 @@ const editDashboardLink = async (linkId) => {
     headers: authHeaders(),
     body: JSON.stringify({
       title: nextTitle.trim() || link.title,
-      cover_image: nextCover.trim(),
+      cover_image: link.cover_image || null,
       share_title: nextShareTitle.trim(),
       share_description: nextShareDescription.trim(),
       theme: { ...(link.theme || {}), accent: accent.trim() || '#0ea5a0' },
@@ -372,6 +371,9 @@ const initDashboardActions = () => {
     if (!action || !linkId) return;
 
     try {
+      if (action === 'edit') {
+        await editDashboardLink(linkId);
+      }
       if (action === 'delete') {
         const ok = window.confirm('Delete this smartlink? This cannot be undone.');
         if (!ok) return;
@@ -477,6 +479,8 @@ const initCreateLinkPage = () => {
   const coverImageFileInput = document.getElementById('coverImageFile');
   if (!form || !addPlatformBtn || !messageEl) return;
   let coverImageFromFile = '';
+  let coverImageValidationError = '';
+  const MAX_COVER_FILE_BYTES = 2 * 1024 * 1024;
 
   const renderCreatePreview = () => {
     if (!previewTitleEl || !previewPlatformsEl) return;
@@ -559,19 +563,22 @@ const initCreateLinkPage = () => {
     const file = coverImageFileInput.files && coverImageFileInput.files[0];
     if (!file) {
       coverImageFromFile = '';
+      coverImageValidationError = '';
       renderCreatePreview();
       return;
     }
     if (!file.type.startsWith('image/')) {
       coverImageFromFile = '';
+      coverImageValidationError = 'Please choose a valid image file.';
       messageEl.textContent = 'Please choose a valid image file.';
       messageEl.className = 'form-message error';
       renderCreatePreview();
       return;
     }
-    if (file.size > 2 * 1024 * 1024) {
+    if (file.size > MAX_COVER_FILE_BYTES) {
       coverImageFromFile = '';
-      messageEl.textContent = 'Image is too large. Please use a file smaller than 2MB.';
+      coverImageValidationError = 'Image is too large. Please use a file smaller than 2MB.';
+      messageEl.textContent = coverImageValidationError;
       messageEl.className = 'form-message error';
       renderCreatePreview();
       return;
@@ -579,12 +586,14 @@ const initCreateLinkPage = () => {
     const reader = new FileReader();
     reader.onload = () => {
       coverImageFromFile = typeof reader.result === 'string' ? reader.result : '';
+      coverImageValidationError = '';
       messageEl.textContent = '';
       messageEl.className = 'form-message';
       renderCreatePreview();
     };
     reader.onerror = () => {
       coverImageFromFile = '';
+      coverImageValidationError = 'Failed to read image file.';
       messageEl.textContent = 'Failed to read image file.';
       messageEl.className = 'form-message error';
       renderCreatePreview();
@@ -598,8 +607,19 @@ const initCreateLinkPage = () => {
     const title = document.getElementById('songTitle')?.value?.trim();
     const selectedCover = coverImageFromFile;
     const platforms = serializePlatforms();
+    const selectedFile = coverImageFileInput?.files && coverImageFileInput.files[0];
     if (!title || platforms.length === 0) {
       messageEl.textContent = 'Song title and at least one platform are required.';
+      messageEl.className = 'form-message error';
+      return;
+    }
+    if (coverImageValidationError) {
+      messageEl.textContent = coverImageValidationError;
+      messageEl.className = 'form-message error';
+      return;
+    }
+    if (selectedFile && selectedFile.size > MAX_COVER_FILE_BYTES) {
+      messageEl.textContent = 'Image is too large. Please use a file smaller than 2MB.';
       messageEl.className = 'form-message error';
       return;
     }
