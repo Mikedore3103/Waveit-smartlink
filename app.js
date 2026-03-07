@@ -374,9 +374,26 @@ const serializePlatforms = () => {
     .filter((item) => item.platform_name && item.platform_url);
 };
 
+const getPlatformRows = () => Array.from(document.querySelectorAll('.platform-row'));
+
+const findPlatformRow = (platformName) =>
+  getPlatformRows().find((row) => row.querySelector('.platform-select')?.value === platformName);
+
+const buildAutoPlatformUrls = (query) => {
+  const q = encodeURIComponent(query);
+  return {
+    'Apple Music': `https://music.apple.com/us/search?term=${q}`,
+    YouTube: `https://www.youtube.com/results?search_query=${q}`,
+    Audiomack: `https://audiomack.com/search/${q}`,
+    SoundCloud: `https://soundcloud.com/search?q=${q}`,
+    Boomplay: `https://www.boomplay.com/search/${q}`,
+  };
+};
+
 const initCreateLinkPage = () => {
   const form = document.getElementById('createLinkForm');
   const addPlatformBtn = document.getElementById('addPlatformBtn');
+  const autoFillPlatformsBtn = document.getElementById('autoFillPlatformsBtn');
   const messageEl = document.getElementById('createLinkMessage');
   const previewTitleEl = document.getElementById('previewSongTitle');
   const previewCoverEl = document.getElementById('previewCover');
@@ -420,6 +437,47 @@ const initCreateLinkPage = () => {
   };
 
   addPlatformBtn.addEventListener('click', () => addPlatformRow('', '', renderCreatePreview));
+  autoFillPlatformsBtn?.addEventListener('click', () => {
+    const title = document.getElementById('songTitle')?.value?.trim();
+    const spotifyRow = findPlatformRow('Spotify');
+    const spotifyUrl = spotifyRow?.querySelector('.platform-url')?.value?.trim();
+
+    if (!title) {
+      messageEl.textContent = 'Enter song title first, then auto-fill platform links.';
+      messageEl.className = 'form-message error';
+      return;
+    }
+
+    if (!spotifyUrl) {
+      messageEl.textContent = 'Add a Spotify link first, then auto-fill the rest.';
+      messageEl.className = 'form-message error';
+      return;
+    }
+
+    const generated = buildAutoPlatformUrls(title);
+    const targets = Object.keys(generated);
+    let filled = 0;
+
+    targets.forEach((platform) => {
+      const existing = findPlatformRow(platform);
+      if (existing) {
+        const urlInput = existing.querySelector('.platform-url');
+        if (urlInput && !urlInput.value.trim()) {
+          urlInput.value = generated[platform];
+          filled += 1;
+        }
+        return;
+      }
+      addPlatformRow(platform, generated[platform], renderCreatePreview);
+      filled += 1;
+    });
+
+    renderCreatePreview();
+    messageEl.textContent = filled > 0
+      ? `Auto-filled ${filled} platform link${filled === 1 ? '' : 's'} from your song title.`
+      : 'All target platform rows already have links.';
+    messageEl.className = 'form-message success';
+  });
   addPlatformRow('Spotify', '', renderCreatePreview);
   document.getElementById('songTitle')?.addEventListener('input', renderCreatePreview);
   document.getElementById('coverImage')?.addEventListener('input', renderCreatePreview);

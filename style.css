@@ -458,6 +458,12 @@ tbody tr:hover {
   box-shadow: 0 0 0 3px rgba(124,58,237,0.2);
 }
 
+.platform-select option,
+.analytics-toolbar select option {
+  color: #111827;
+  background: #f8fafc;
+}
+
 /* ── Platform Section ──────────────────────────────────────── */
 .platform-section {
   border: 1px solid var(--surface-border);
@@ -472,6 +478,12 @@ tbody tr:hover {
   justify-content: space-between;
   gap: 0.8rem;
   margin-bottom: 0.9rem;
+}
+
+.platform-head-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
 }
 
 .platform-head h3 {
