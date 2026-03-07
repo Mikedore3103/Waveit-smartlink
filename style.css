@@ -384,6 +384,37 @@ tbody tr:hover {
   background: rgba(124,58,237,0.08);
 }
 
+.song-title-cell {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.65rem;
+  min-width: 0;
+}
+
+.song-cover-thumb,
+.song-cover-placeholder {
+  width: 34px;
+  height: 34px;
+  border-radius: 0.5rem;
+  flex: 0 0 34px;
+}
+
+.song-cover-thumb {
+  object-fit: cover;
+  border: 1px solid rgba(255,255,255,0.16);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.35);
+}
+
+.song-cover-placeholder {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #dbeafe;
+  font-size: 0.95rem;
+  background: linear-gradient(135deg, rgba(124,58,237,0.6), rgba(6,182,212,0.5));
+  border: 1px solid rgba(255,255,255,0.14);
+}
+
 .link-out {
   color: #a78bfa;
   text-decoration: none;
@@ -568,12 +599,15 @@ tbody tr:hover {
 
 .public-link-shell {
   width: min(520px, 100%);
-  background: rgba(255,255,255,0.06);
-  border: 1px solid var(--surface-border);
+  background:
+    linear-gradient(140deg, rgba(14,17,29,0.75), rgba(20,25,43,0.62)),
+    radial-gradient(circle at 18% 12%, rgba(124,58,237,0.28), transparent 48%),
+    radial-gradient(circle at 85% 85%, rgba(6,182,212,0.2), transparent 44%);
+  border: 1px solid rgba(255,255,255,0.12);
   border-radius: 1.4rem;
-  box-shadow: var(--shadow);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  box-shadow: 0 30px 80px rgba(0,0,0,0.55);
+  backdrop-filter: blur(24px) saturate(130%);
+  -webkit-backdrop-filter: blur(24px) saturate(130%);
   padding: 1.5rem;
   text-align: center;
   animation: fadeUp 0.5s ease both;
@@ -613,17 +647,17 @@ tbody tr:hover {
 .public-platform-btn {
   display: inline-flex;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   width: 100%;
-  border: 1px solid rgba(255,255,255,0.12);
+  border: 1px solid rgba(255,255,255,0.16);
   border-radius: 0.9rem;
   padding: 0.85rem 1rem;
-  background: rgba(255,255,255,0.07);
+  background: rgba(10,14,25,0.55);
   color: #fff;
   text-decoration: none;
   font-weight: 700;
   font-size: 0.97rem;
-  transition: transform var(--transition), box-shadow var(--transition), background var(--transition);
+  transition: transform var(--transition), box-shadow var(--transition), background var(--transition), border-color var(--transition);
   animation: fadeUp 0.5s ease both;
 }
 
@@ -636,44 +670,45 @@ tbody tr:hover {
 
 .public-platform-btn:hover {
   transform: translateY(-2px) scale(1.01);
-  box-shadow: 0 12px 28px rgba(0,0,0,0.4);
+  box-shadow: 0 12px 30px rgba(0,0,0,0.45);
+  background: rgba(18,23,37,0.78);
+}
+
+.platform-btn-content {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.platform-logo {
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
+  flex: 0 0 18px;
 }
 
 .platform-spotify {
-  background: linear-gradient(135deg, #1db954 0%, #14a044 100%);
-  border-color: #1db954;
-  box-shadow: 0 6px 20px rgba(29,185,84,0.3);
+  border-color: rgba(29,185,84,0.55);
 }
 
 .platform-apple-music {
-  background: linear-gradient(135deg, #fc3c44 0%, #c0392b 100%);
-  border-color: #fc3c44;
-  box-shadow: 0 6px 20px rgba(252,60,68,0.3);
+  border-color: rgba(252,60,68,0.55);
 }
 
 .platform-youtube {
-  background: linear-gradient(135deg, #ff0000 0%, #b91c1c 100%);
-  border-color: #ff0000;
-  box-shadow: 0 6px 20px rgba(255,0,0,0.3);
+  border-color: rgba(255,0,0,0.58);
 }
 
 .platform-audiomack {
-  background: linear-gradient(135deg, #fbbf24 0%, #d97706 100%);
-  color: #111827;
-  border-color: #fbbf24;
-  box-shadow: 0 6px 20px rgba(251,191,36,0.3);
+  border-color: rgba(251,191,36,0.56);
 }
 
 .platform-soundcloud {
-  background: linear-gradient(135deg, #ff7f1f 0%, #ea580c 100%);
-  border-color: #ff7f1f;
-  box-shadow: 0 6px 20px rgba(255,127,31,0.3);
+  border-color: rgba(255,127,31,0.56);
 }
 
 .platform-boomplay {
-  background: linear-gradient(135deg, #22c55e 0%, #15803d 100%);
-  border-color: #22c55e;
-  box-shadow: 0 6px 20px rgba(34,197,94,0.3);
+  border-color: rgba(34,197,94,0.56);
 }
 
 .public-state {

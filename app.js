@@ -112,10 +112,26 @@ const platformClassMap = {
   SoundCloud: 'platform-soundcloud',
   Boomplay: 'platform-boomplay',
 };
+const platformLogoUrlMap = {
+  Spotify: 'https://cdn.simpleicons.org/spotify/1DB954',
+  'Apple Music': 'https://cdn.simpleicons.org/applemusic/ffffff',
+  YouTube: 'https://cdn.simpleicons.org/youtube/FF0000',
+  Audiomack: 'https://cdn.simpleicons.org/audiomack/F59E0B',
+  SoundCloud: 'https://cdn.simpleicons.org/soundcloud/FF5500',
+  Boomplay: 'https://cdn.simpleicons.org/boompod/22C55E',
+};
 
 const platformCtaLabel = (platformName) => {
   if (platformName === 'YouTube') return 'Watch on YouTube';
   return `Listen on ${platformName}`;
+};
+
+const buildPlatformButtonContent = (platformName, label) => {
+  const logoUrl = platformLogoUrlMap[platformName];
+  const logo = logoUrl
+    ? `<img class="platform-logo" src="${logoUrl}" alt="" loading="lazy" decoding="async" onerror="this.style.display='none'" />`
+    : '';
+  return `<span class="platform-btn-content">${logo}<span>${label}</span></span>`;
 };
 
 const getUtmFromUrl = () => {
@@ -178,15 +194,42 @@ const renderLinks = (links) => {
     const smartUrl = buildPublicLinkUrl(link.slug);
 
     const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td>${link.title || 'Untitled'}</td>
-      <td>${formatDate(link.created_at)}</td>
-      <td>${formatNumber(clicks)}</td>
-      <td>
-        <a class="btn-inline action-btn" href="${smartUrl}" target="_blank" rel="noopener noreferrer">View</a>
-        <a class="btn-inline action-btn" href="analytics.html?link_id=${encodeURIComponent(link.id)}">Analytics</a>
-        <button type="button" class="btn-remove action-btn" data-action="delete" data-link-id="${link.id}">Delete</button>
-      </td>`;
+    const titleTd = document.createElement('td');
+    const titleWrap = document.createElement('div');
+    titleWrap.className = 'song-title-cell';
+    if (link.cover_image) {
+      const thumb = document.createElement('img');
+      thumb.className = 'song-cover-thumb';
+      thumb.src = link.cover_image;
+      thumb.alt = `${link.title || 'Song'} cover`;
+      titleWrap.appendChild(thumb);
+    } else {
+      const placeholder = document.createElement('div');
+      placeholder.className = 'song-cover-placeholder';
+      placeholder.textContent = '♪';
+      titleWrap.appendChild(placeholder);
+    }
+    const titleText = document.createElement('span');
+    titleText.textContent = link.title || 'Untitled';
+    titleWrap.appendChild(titleText);
+    titleTd.appendChild(titleWrap);
+
+    const dateTd = document.createElement('td');
+    dateTd.textContent = formatDate(link.created_at);
+
+    const clicksTd = document.createElement('td');
+    clicksTd.textContent = formatNumber(clicks);
+
+    const actionTd = document.createElement('td');
+    actionTd.innerHTML = `
+      <a class="btn-inline action-btn" href="${smartUrl}" target="_blank" rel="noopener noreferrer">View</a>
+      <a class="btn-inline action-btn" href="analytics.html?link_id=${encodeURIComponent(link.id)}">Analytics</a>
+      <button type="button" class="btn-remove action-btn" data-action="delete" data-link-id="${link.id}">Delete</button>
+    `;
+    tr.appendChild(titleTd);
+    tr.appendChild(dateTd);
+    tr.appendChild(clicksTd);
+    tr.appendChild(actionTd);
     body.appendChild(tr);
   });
 
@@ -431,7 +474,7 @@ const initCreateLinkPage = () => {
       const button = document.createElement('button');
       button.type = 'button';
       button.className = 'public-platform-btn';
-      button.textContent = platform.platform_name;
+      button.innerHTML = buildPlatformButtonContent(platform.platform_name, platform.platform_name);
       previewPlatformsEl.appendChild(button);
     });
   };
@@ -566,8 +609,7 @@ const applyPublicTheme = (theme) => {
   if (!theme || typeof theme !== 'object') return;
   const shell = document.getElementById('publicLinkShell');
   if (!shell) return;
-  if (theme.background) document.body.style.background = theme.background;
-  if (theme.card) shell.style.background = theme.card;
+  // Keep dark glass base for readability; apply only text/accent customizations.
   if (theme.text) shell.style.color = theme.text;
   if (theme.accent) {
     shell.style.setProperty('--accent', theme.accent);
@@ -635,7 +677,10 @@ const initPublicLinkPage = async () => {
       const button = document.createElement('button');
       button.type = 'button';
       button.className = `public-platform-btn ${platformClassMap[platform.platform_name] || ''}`.trim();
-      button.textContent = platformCtaLabel(platform.platform_name);
+      button.innerHTML = buildPlatformButtonContent(
+        platform.platform_name,
+        platformCtaLabel(platform.platform_name)
+      );
       button.addEventListener('click', () => {
         trackClickAndRedirect(link.id, platform.platform_name, platform.platform_url);
       });
