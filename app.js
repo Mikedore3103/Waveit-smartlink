@@ -126,9 +126,17 @@ const platformCtaLabel = (platformName) => {
   return `Listen on ${platformName}`;
 };
 
+const escapeSvgText = (value) =>
+  String(value || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&apos;');
+
 const buildCoverPlaceholder = (title = 'Untitled', artist = 'Waveit') => {
-  const safeTitle = String(title || 'Untitled').slice(0, 28);
-  const safeArtist = String(artist || 'Waveit').slice(0, 32);
+  const safeTitle = escapeSvgText(String(title || 'Untitled').slice(0, 28));
+  const safeArtist = escapeSvgText(String(artist || 'Waveit').slice(0, 32));
   const svg = `
     <svg xmlns="http://www.w3.org/2000/svg" width="600" height="600" viewBox="0 0 600 600">
       <defs>
@@ -223,6 +231,10 @@ const renderLinks = (links) => {
       thumb.className = 'song-cover-thumb';
       thumb.src = link.cover_image;
       thumb.alt = `${link.title || 'Song'} cover`;
+      thumb.onerror = () => {
+        thumb.onerror = null;
+        thumb.src = buildCoverPlaceholder(link.title, link.artist_name || 'Waveit');
+      };
       titleWrap.appendChild(thumb);
     } else {
       const placeholder = document.createElement('div');
@@ -679,6 +691,10 @@ const initPublicLinkPage = async () => {
     stateEl.textContent = '';
 
     coverEl.src = link.cover_image || buildCoverPlaceholder(link.title, link.artist_name);
+    coverEl.onerror = () => {
+      coverEl.onerror = null;
+      coverEl.src = buildCoverPlaceholder(link.title, link.artist_name);
+    };
     coverEl.style.display = 'block';
 
     platformsEl.innerHTML = '';
