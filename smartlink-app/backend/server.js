@@ -35,7 +35,7 @@ app.use(cors());
 app.use(helmet());
 app.use('/api', apiLimiter);
 app.use('/api/track-click', clickLimiter);
-app.use(bodyParser.json());
+app.use(bodyParser.json({ limit: '5mb' }));
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, '..', 'frontend')));
 app.use('/api', authRoutes);

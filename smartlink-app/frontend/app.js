@@ -13,6 +13,13 @@ const getCurrentPage = () => {
   return raw || 'index.html';
 };
 
+const buildPublicLinkUrl = (slug) => {
+  if (!slug) return '-';
+  const url = new URL('link.html', window.location.href);
+  url.searchParams.set('slug', slug);
+  return url.toString();
+};
+
 const renderAuthNav = () => {
   const currentPage = getCurrentPage();
   if (!protectedPages.has(currentPage)) return;
@@ -168,7 +175,7 @@ const renderLinks = (links) => {
     clicksTotal += clicks;
     const linkPlatforms = Array.isArray(link.platforms) ? link.platforms.length : 0;
     platformsTotal += linkPlatforms;
-    const smartUrl = link.slug ? `${window.location.origin.replace(/\/$/, '')}/l/${link.slug}` : '-';
+    const smartUrl = buildPublicLinkUrl(link.slug);
 
     const tr = document.createElement('tr');
     tr.innerHTML = `
@@ -374,21 +381,24 @@ const initCreateLinkPage = () => {
   const previewTitleEl = document.getElementById('previewSongTitle');
   const previewCoverEl = document.getElementById('previewCover');
   const previewPlatformsEl = document.getElementById('previewPlatforms');
+  const coverImageFileInput = document.getElementById('coverImageFile');
   if (!form || !addPlatformBtn || !messageEl) return;
+  let coverImageFromFile = '';
 
   const renderCreatePreview = () => {
     if (!previewTitleEl || !previewPlatformsEl) return;
 
     const title = document.getElementById('songTitle')?.value?.trim() || 'Your Song Title';
     const coverImage = document.getElementById('coverImage')?.value?.trim();
+    const selectedCover = coverImage || coverImageFromFile;
     const platforms = serializePlatforms();
 
     previewTitleEl.textContent = title;
     previewPlatformsEl.innerHTML = '';
 
     if (previewCoverEl) {
-      if (coverImage) {
-        previewCoverEl.src = coverImage;
+      if (selectedCover) {
+        previewCoverEl.src = selectedCover;
         previewCoverEl.style.display = 'block';
       } else {
         previewCoverEl.style.display = 'none';
@@ -413,12 +423,49 @@ const initCreateLinkPage = () => {
   addPlatformRow('Spotify', '', renderCreatePreview);
   document.getElementById('songTitle')?.addEventListener('input', renderCreatePreview);
   document.getElementById('coverImage')?.addEventListener('input', renderCreatePreview);
+  coverImageFileInput?.addEventListener('change', () => {
+    const file = coverImageFileInput.files && coverImageFileInput.files[0];
+    if (!file) {
+      coverImageFromFile = '';
+      renderCreatePreview();
+      return;
+    }
+    if (!file.type.startsWith('image/')) {
+      coverImageFromFile = '';
+      messageEl.textContent = 'Please choose a valid image file.';
+      messageEl.className = 'form-message error';
+      renderCreatePreview();
+      return;
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      coverImageFromFile = '';
+      messageEl.textContent = 'Image is too large. Please use a file smaller than 2MB.';
+      messageEl.className = 'form-message error';
+      renderCreatePreview();
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      coverImageFromFile = typeof reader.result === 'string' ? reader.result : '';
+      messageEl.textContent = '';
+      messageEl.className = 'form-message';
+      renderCreatePreview();
+    };
+    reader.onerror = () => {
+      coverImageFromFile = '';
+      messageEl.textContent = 'Failed to read image file.';
+      messageEl.className = 'form-message error';
+      renderCreatePreview();
+    };
+    reader.readAsDataURL(file);
+  });
   renderCreatePreview();
 
   form.addEventListener('submit', async (event) => {
     event.preventDefault();
     const title = document.getElementById('songTitle')?.value?.trim();
     const coverImage = document.getElementById('coverImage')?.value?.trim();
+    const selectedCover = coverImage || coverImageFromFile;
     const platforms = serializePlatforms();
     if (!title || platforms.length === 0) {
       messageEl.textContent = 'Song title and at least one platform are required.';
@@ -432,7 +479,7 @@ const initCreateLinkPage = () => {
         headers: authHeaders(),
         body: JSON.stringify({
           title,
-          cover_image: coverImage || null,
+          cover_image: selectedCover || null,
           platforms,
         }),
       });
@@ -451,6 +498,8 @@ const initCreateLinkPage = () => {
 };
 
 const getSlugFromPath = () => {
+  const querySlug = new URLSearchParams(window.location.search).get('slug');
+  if (querySlug) return decodeURIComponent(querySlug);
   const parts = window.location.pathname.split('/').filter(Boolean);
   return parts[0] === 'l' && parts[1] ? decodeURIComponent(parts[1]) : '';
 };
@@ -721,7 +770,7 @@ const initArtistProfilePage = async () => {
     (payload.links || []).forEach((link) => {
       const a = document.createElement('a');
       a.className = 'public-platform-btn';
-      a.href = `/l/${link.slug}`;
+      a.href = buildPublicLinkUrl(link.slug);
       a.textContent = link.title;
       linksEl.appendChild(a);
     });
@@ -761,3 +810,4 @@ const init = async () => {
 };
 
 init();
+

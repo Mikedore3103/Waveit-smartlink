@@ -20,8 +20,10 @@ const analyticsCache = new Map();
 const ANALYTICS_CACHE_TTL_MS = 60 * 1000;
 const MAX_TITLE_LENGTH = 200;
 const MAX_URL_LENGTH = 2048;
+const MAX_COVER_IMAGE_DATA_URL_LENGTH = 3 * 1024 * 1024;
 const SAFE_SLUG_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const DATA_IMAGE_RE = /^data:image\/(?:png|jpe?g|webp|gif);base64,[a-z0-9+/=\r\n]+$/i;
 
 const sanitizeText = (value, maxLength) => String(value || '').trim().slice(0, maxLength);
 const isValidUuid = (value) => UUID_RE.test(String(value || ''));
@@ -35,6 +37,24 @@ const isValidUrl = (value) => {
   } catch (error) {
     return false;
   }
+};
+
+const sanitizeCoverImage = (value) => {
+  if (typeof value !== 'string') return '';
+  const trimmed = value.trim();
+  if (!trimmed) return '';
+  if (trimmed.startsWith('data:image/')) return trimmed;
+  return sanitizeText(trimmed, MAX_URL_LENGTH);
+};
+
+const isValidCoverImage = (value) => {
+  if (!value) return true;
+  if (typeof value !== 'string') return false;
+  if (value.startsWith('data:image/')) {
+    if (value.length > MAX_COVER_IMAGE_DATA_URL_LENGTH) return false;
+    return DATA_IMAGE_RE.test(value);
+  }
+  return isValidUrl(value);
 };
 
 const getCachedAnalytics = (linkId) => {
@@ -114,6 +134,11 @@ const getBaseUrl = (req) => {
   return `${req.protocol}://${req.get('host')}`.replace(/\/$/, '');
 };
 
+const buildPublicLinkUrl = (req, slug) => {
+  const baseUrl = getBaseUrl(req);
+  return `${baseUrl}/link.html?slug=${encodeURIComponent(slug)}`;
+};
+
 const logAnalyticsEvent = async ({ linkId, platformClicked, req, utm }) => {
   const ipAddress = getClientIp(req);
   const geo = ipAddress ? geoip.lookup(ipAddress) : null;
@@ -149,7 +174,7 @@ const logAnalyticsEvent = async ({ linkId, platformClicked, req, utm }) => {
 const createLink = async (req, res) => {
   const userId = req.user && req.user.userId;
   const title = sanitizeText(req.body.title, MAX_TITLE_LENGTH);
-  const coverImage = sanitizeText(req.body.cover_image, MAX_URL_LENGTH);
+  const coverImage = sanitizeCoverImage(req.body.cover_image);
   const sanitizedPlatforms = sanitizePlatforms(req.body.platforms);
   const linkTheme = sanitizeLinkTheme(req.body.theme);
   const shareTitle = sanitizeText(req.body.share_title || title, 120);
@@ -157,8 +182,8 @@ const createLink = async (req, res) => {
 
   if (!userId) return res.status(401).json({ message: 'Unauthorized' });
   if (!title) return res.status(400).json({ message: 'title is required' });
-  if (coverImage && !isValidUrl(coverImage)) {
-    return res.status(400).json({ message: 'Invalid cover_image URL' });
+  if (coverImage && !isValidCoverImage(coverImage)) {
+    return res.status(400).json({ message: 'Invalid cover_image. Use an https URL or data:image base64 payload.' });
   }
 
   const platformValidationError = validatePlatforms(sanitizedPlatforms);
@@ -256,7 +281,7 @@ const updateLink = async (req, res) => {
   const userId = req.user && req.user.userId;
   const linkId = req.params.id;
   const title = sanitizeText(req.body.title, MAX_TITLE_LENGTH);
-  const coverImage = sanitizeText(req.body.cover_image, MAX_URL_LENGTH);
+  const coverImage = sanitizeCoverImage(req.body.cover_image);
   const hasCoverImageField = Object.prototype.hasOwnProperty.call(req.body, 'cover_image');
   const hasPlatformsField = Object.prototype.hasOwnProperty.call(req.body, 'platforms');
   const hasThemeField = Object.prototype.hasOwnProperty.call(req.body, 'theme');
@@ -269,8 +294,8 @@ const updateLink = async (req, res) => {
   if (!title && !hasCoverImageField && !hasPlatformsField && !hasThemeField && !hasShareTitleField && !hasShareDescriptionField) {
     return res.status(400).json({ message: 'No update payload provided' });
   }
-  if (hasCoverImageField && coverImage && !isValidUrl(coverImage)) {
-    return res.status(400).json({ message: 'Invalid cover_image URL' });
+  if (hasCoverImageField && coverImage && !isValidCoverImage(coverImage)) {
+    return res.status(400).json({ message: 'Invalid cover_image. Use an https URL or data:image base64 payload.' });
   }
   if (hasPlatformsField) {
     const platformValidationError = validatePlatforms(sanitizedPlatforms);
@@ -480,7 +505,7 @@ const getLinkQrCode = async (req, res) => {
     );
     if (result.rows.length === 0) return res.status(404).json({ message: 'Link not found' });
     const slug = result.rows[0].slug;
-    const linkUrl = `${getBaseUrl(req)}/l/${slug}`;
+    const linkUrl = buildPublicLinkUrl(req, slug);
     const qrDataUrl = await generateQrDataUrl(linkUrl);
     return res.status(200).json({ link_url: linkUrl, qr_data_url: qrDataUrl });
   } catch (error) {
@@ -616,7 +641,7 @@ const renderPublicLinkPage = async (req, res) => {
 
     const link = result.rows[0];
     const baseUrl = getBaseUrl(req);
-    const canonicalUrl = `${baseUrl}/l/${slug}`;
+    const canonicalUrl = buildPublicLinkUrl(req, slug);
     const shareTitle = link.share_title || `${link.artist_name} - ${link.title}`;
     const shareDescription = link.share_description || `Listen to ${link.title} by ${link.artist_name}`;
     const image = link.cover_image || `${baseUrl}/cover-placeholder.png`;
