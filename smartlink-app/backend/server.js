@@ -6,6 +6,7 @@ const cors = require('cors');
 const bodyParser = require('body-parser');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
+const pool = require('./config/db');
 const authRoutes = require('./routes/auth');
 const linksRoutes = require('./routes/links');
 const profileRoutes = require('./routes/profile');
@@ -43,8 +44,17 @@ app.use('/api', linksRoutes);
 app.use('/api', profileRoutes);
 app.use(publicLinkRoutes);
 
-app.get('/api/health', (req, res) => {
-  res.status(200).send('API working');
+app.get('/api/health', async (req, res) => {
+  try {
+    await pool.query('SELECT 1');
+    return res.status(200).json({ status: 'ok', database: 'connected' });
+  } catch (error) {
+    return res.status(503).json({
+      status: 'degraded',
+      database: 'unreachable',
+      error: error.message,
+    });
+  }
 });
 
 // Catch-all: return JSON 404 for unmatched /api/* routes
